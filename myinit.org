@@ -1,0 +1,543 @@
+* functions 
+#+BEGIN_SRC emacs-lisp
+(defun azr/org-roam-node-read (nodes)
+  "Like org-roam-node-read but takes a list of NODES."
+  (cl-letf (((symbol-function 'org-roam-node-list) (lambda () nodes)))
+    (org-roam-node-read)))
+
+(defun azr/org-roam-node-read-backlinks ()
+  (interactive)
+  "Like org-roam-node-read but only for backlinks of node at point."
+  (let ((nodes (seq-filter (lambda (elt) (string-match-p (regexp-quote "gtd") (org-roam-node-title elt))) (org-roam-node-list))))
+    (azr/org-roam-node-read nodes)))
+
+
+  (defun add-created-property ()
+	(interactive)
+	(org-roam-add-property
+	 (format-time-string "%Y-%m-%d")
+	 "CREATED"))
+
+      (defun directory-dirs (dir)
+	    "Find all directories in DIR."
+	    (unless (file-directory-p dir)
+	      (error "Not a directory `%s'" dir))
+	    (let ((dir (directory-file-name dir))
+		  (dirs '())
+		  (files (directory-files dir nil nil t)))
+		(dolist (file files)
+		  (unless (member file '("." ".."))
+		    (let ((file (concat (file-name-as-directory dir) file)))
+		      (when (file-directory-p file)
+			(setq dirs (cons file
+					   dirs))))))
+		dirs))
+
+	(defun directory-dirs-r (dir)
+	    "Recursuvely find all directories in DIR."
+	    (unless (file-directory-p dir)
+	      (error "Not a directory `%s'" dir))
+	    (let ((dir (directory-file-name dir))
+		  (dirs '())
+		  (files (directory-files dir nil nil t)))
+		(dolist (file files)
+		  (unless (member file '("." ".."))
+		    (let ((file (concat (file-name-as-directory dir) file)))
+		      (when (file-directory-p file)
+			(setq dirs (append (cons file
+						 (directory-dirs-r file))
+					   dirs))))))
+		dirs))
+
+
+	(defun delete-file-and-buffer ()
+	  "Kill the current buffer and deletes the file it is visiting."
+	  (interactive)
+	  (let ((filename (buffer-file-name)))
+	    (when filename
+	      (if (vc-backend filename)
+		  (vc-delete-file filename)
+		(progn
+		  (delete-file filename)
+		  (message "Deleted file %s" filename)
+		  (kill-buffer))))))
+
+
+	(defun move-to-archives ()
+	  "Renames current buffer and file it is visiting."
+	  (interactive)
+	  (let* ((name (buffer-name))
+		(filename (buffer-file-name))
+		(basename (file-name-nondirectory filename)))
+	    (if (not (and filename (file-exists-p filename)))
+		(error "Buffer '%s' is not visiting a file!" name)
+	      (let ((new-name (read-file-name "New name: " "~/archives/" basename nil basename)))
+		(if (get-buffer new-name)
+		    (error "A buffer named '%s' already exists!" new-name)
+		  (rename-file filename new-name 1)
+		  (rename-buffer new-name)
+		  (set-visited-file-name new-name)
+		  (set-buffer-modified-p nil)
+		  (message "File '%s' successfully renamed to '%s'"
+			   name (file-name-nondirectory new-name)))))))
+
+
+	(defun move-to-someday ()
+	  "Renames current buffer and file it is visiting."
+	  (interactive)
+	  (let* ((name (buffer-name))
+		(filename (buffer-file-name))
+		(basename (file-name-nondirectory filename)))
+	    (if (not (and filename (file-exists-p filename)))
+		(error "Buffer '%s' is not visiting a file!" name)
+	      (let ((new-name (concat "~/someday/" (file-name-nondirectory filename)) ))
+		(if (get-buffer new-name)
+		    (error "A buffer named '%s' already exists!" new-name)
+		  (rename-file filename new-name 1)
+		  (rename-buffer new-name)
+		  (set-visited-file-name new-name)
+		  (set-buffer-modified-p nil)
+		  (message "File '%s' successfully renamed to '%s'"
+			   name (file-name-nondirectory new-name)))))))
+
+
+	(defun rename-current-buffer-file ()
+	  "Renames current buffer and file it is visiting."
+	  (interactive)
+	  (let* ((name (buffer-name))
+		(filename (buffer-file-name))
+		(basename (file-name-nondirectory filename)))
+	    (if (not (and filename (file-exists-p filename)))
+		(error "Buffer '%s' is not visiting a file!" name)
+	      (let ((new-name (read-file-name "New name: " (file-name-directory filename) basename nil basename)))
+		(if (get-buffer new-name)
+		    (error "A buffer named '%s' already exists!" new-name)
+		  (rename-file filename new-name 1)
+		  (rename-buffer new-name)
+		  (set-visited-file-name new-name)
+		  (set-buffer-modified-p nil)
+		  (message "File '%s' successfully renamed to '%s'"
+			   name (file-name-nondirectory new-name)))))))
+#+END_SRC
+* interface tweaks
+#+BEGIN_SRC emacs-lisp
+  (setq inhibit-startup-message t)
+  (tool-bar-mode -1)
+#+END_SRC
+** Backup files
+#+BEGIN_SRC emacs-lisp
+;; Emacs can automatically create backup files. This tells Emacs to
+;; put all backups in ~/.emacs.d/backups. More info:
+;; http://www.gnu.org/software/emacs/manual/html_node/elisp/Backup-Files.html
+(setq backup-directory-alist `(("." . ,(concat user-emacs-directory
+                                               "backups"))))
+
+#+END_SRC
+** Symlink files
+Emacs uses symlinks as the interlocking system.
+When you edit a file, emacs creates a symlink to indicate
+that it is being edited by emacs. It than can warn you when
+anouther instance of emacs tries to edit the file.
+I have to turn it off because it causes errors in react-scripts.
+#+BEGIN_SRC emacs-lisp
+  (setq create-lockfiles nil)
+#+END_SRC
+
+* dired+
+#+BEGIN_SRC emacs-lisp
+(straight-use-package
+ '(dired+ :type git :repo "emacsmirror/dired-plus"))
+#+END_SRC
+* ace-window
+#+BEGIN_SRC emacs-lisp
+  (use-package ace-window
+    :straight t
+    :ensure t
+    :init
+    (global-set-key [remap other-window] 'ace-window))
+#+END_SRC
+* magit
+#+BEGIN_SRC emacs-lisp
+  (use-package magit
+    :straight t
+    :ensure t)
+#+END_SRC
+* try
+#+BEGIN_SRC emacs-lisp
+  (use-package try
+    :straight t
+    :ensure t)
+#+END_SRC
+* which key
+#+BEGIN_SRC emacs-lisp
+  (use-package which-key
+    :straight t
+    :ensure t
+    :config (which-key-mode))
+#+END_SRC
+* ivy counsel swiper
+#+BEGIN_SRC emacs-lisp
+  (use-package ivy
+    :straight t
+    :ensure t
+    :diminish (ivy-mode)
+    :bind (("C-x b" . ivy-switch-buffer))
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-display-style 'fancy)
+      ))
+
+  (use-package counsel
+    :straight t
+    :ensure t)
+
+  (use-package swiper
+    :straight t
+    :ensure try
+    :bind (("C-s" . swiper)
+	   ("C-r" . swiper)
+	   ("M-x" . counsel-M-x)
+	   ("C-x C-f" . counsel-find-file))
+    :config
+    (progn
+      (ivy-mode 1)
+      (setq ivy-use-virtual-buffers t)
+      (setq ivy-display-style 'fancy)
+      (define-key read-expression-map (kbd "C-r") 'counsel-espression-history)
+      ))
+
+#+END_SRC
+* avy
+#+BEGIN_SRC emacs-lisp
+  (use-package avy
+    :straight t
+    :ensure t
+    :bind (("s-w" . avy-goto-word-1)
+	   ("s-a" . avy-goto-line))
+    :config (setq avy-all-windows nil))
+#+END_SRC
+* general
+#+BEGIN_SRC emacs-lisp
+  (setq ido-enable-flex-matching t)
+  (setq ido-everywhere t)
+  (ido-mode 1)
+
+  (defalias 'list-buffers 'ibuffer-other-window)
+#+END_SRC
+* navigating
+#+BEGIN_SRC emacs-lisp
+  (define-key key-translation-map (kbd "s-i") (kbd "<up>"))
+  (define-key key-translation-map (kbd "s-k") (kbd "<down>"))
+  (define-key key-translation-map (kbd "s-l") (kbd "<right>"))
+  (define-key key-translation-map (kbd "s-j") (kbd "<left>"))
+  (define-key key-translation-map (kbd "C-s-j") (kbd "<C-left>"))
+  (define-key key-translation-map (kbd "C-s-l") (kbd "<C-right>"))
+  (define-key key-translation-map (kbd "C-s-i") (kbd "<C-up>"))
+  (define-key key-translation-map (kbd "C-s-k") (kbd "<C-down>"))
+  (define-key key-translation-map (kbd "s-u") (kbd "DEL"))
+  (define-key key-translation-map (kbd "s-o") (kbd "<deletechar>"))
+  (define-key key-translation-map (kbd "C-s-u") (kbd "<C-backspace>"))
+  (define-key key-translation-map (kbd "C-s-o") (kbd "<C-delete>"))
+#+END_SRC
+* company
+#+BEGIN_SRC emacs-lisp
+  (use-package company
+    :straight t
+    :ensure t
+    :init
+    (global-company-mode t)
+    :config
+    (setq company-idle-delay 0)
+    (setq company-minimum-prefix-length 3)
+  )
+#+END_SRC
+* flycheck
+#+BEGIN_SRC emacs-lisp
+  (use-package flycheck
+    :straight t
+    :ensure t
+    :init
+    (global-flycheck-mode t))
+#+END_SRC
+* python
+** elpy:
+#+BEGIN_SRC emacs-lisp
+  (use-package elpy
+    :straight t
+    :ensure t
+    :init
+    (elpy-enable))
+#+END_SRC
+* projectile
+#+BEGIN_SRC emacs-lisp
+  (use-package projectile
+    :straight t
+    :ensure t
+    :config
+    (projectile-mode +1)
+    (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+    (setq projectile-project-root-files-functions '(projectile-root-top-down)
+	projectile-project-root-files
+	'(".git" ".bzr" ".svn" ".hg" "_darcs" ".projectile" "Makefile"))
+
+  )
+  (use-package counsel-projectile
+    :straight t
+    :ensure t
+    :config
+    (counsel-projectile-mode)
+    )
+#+END_SRC
+* exec-path-from-shell 
+This setting ensures environment variables inside emacs look the same as in the user's shell.
+#+BEGIN_SRC emacs-lisp
+  (use-package exec-path-from-shell
+    :straight t
+    :ensure t
+    :config
+    (when (memq window-system '(mac ns x))
+      (exec-path-from-shell-initialize))
+  )
+
+#+END_SRC
+* yasnippet
+#+BEGIN_SRC emacs-lisp
+  (use-package yasnippet
+    :straight t
+    :ensure t
+    :init
+    (yas-global-mode 1)
+    )
+  (use-package yasnippet-snippets
+    :straight t
+    :ensure t
+    )
+#+END_SRC
+* web-mode
+#+BEGIN_SRC emacs-lisp
+  (use-package web-mode
+    :straight t
+    :ensure t
+    :config
+    (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+    (add-to-list 'auto-mode-alist '("\\.tsx\\'" . web-mode))
+    (add-hook 'web-mode-hook
+	      (lambda ()
+		(when (string-equal "tsx" (file-name-extension buffer-file-name))
+		  (setup-tide-mode))))
+    ;; enable typescript-tslint checker
+    (flycheck-add-mode 'typescript-tslint 'web-mode)
+    (setq web-mode-enable-auto-quoting t)
+    (setq web-mode-enable-auto-closing t))
+#+END_SRC
+* smartparens
+#+BEGIN_SRC emacs-lisp
+  (use-package smartparens
+    :straight t
+    :ensure t
+    :config
+    (smartparens-global-mode)
+    )
+#+END_SRC
+* typescript
+** For editing tsx with web-mode see https://github.com/ananthakumaran/tide
+#+BEGIN_SRC emacs-lisp
+  (use-package tide
+    :straight t
+    :ensure t
+    :after (typescript-mode company flycheck)
+    :hook
+    (typescript-mode . tide-setup)
+    (typescript-mode . tide-hl-identifier-mode)
+    (before-save . tide-format-before-save)
+    :config
+    (setq tide-tsserver-executable "node_modules/typescript/bin/tsserver")
+    )
+#+END_SRC
+* javascript
+#+BEGIN_SRC emacs-lisp
+  (defun setup-tide-mode ()
+    (interactive)
+    (tide-setup)
+    (flycheck-mode +1)
+    (setq flycheck-check-syntax-automatically '(save mode-enabled))
+    (eldoc-mode +1)
+    (tide-hl-identifier-mode +1))
+  (add-hook 'js-mode-hook #'setup-tide-mode)
+#+END_SRC
+* tdd org
+#+BEGIN_SRC emacs-lisp
+  (use-package helm-org-rifle
+    :straight t
+    :ensure t)
+
+  (defun my/org-capture-maybe-create-id-and-add-date ()
+    (when (org-capture-get :create-id)
+      (org-id-get-create))
+    (when (org-capture-get :created)
+      (org-roam-add-property
+	   (format-time-string "%Y-%m-%d")
+	   "CREATED")))
+
+  (add-hook 'org-capture-mode-hook #'my/org-capture-maybe-create-id-and-add-date)
+
+  (setq org-agenda-files '("/home/lukh/Dropbox/roam/gtd"))
+  (setq org-direcotry "/home/lukh/Dropbox/roam/gtd")
+
+  ;; set tags: @ - context tags, # - area tags
+  (setq org-tag-alist '(
+			("project")
+			("someday")
+			("clarify"     . ?c)
+			("journal"  . ?j)
+			("blog_potential"  . ?b)
+			("drill")
+			("area")
+			("goal")
+			("zettel")
+			("zettel_potential" . ?z)
+			("quote")
+			("fpts")
+			("typescript")
+			("haskell")
+			("tdd")
+			("functional-programming")
+			("foss")
+			("linux")
+			("emacs")
+			("lukhbook")
+			("backend")
+			("nginx")
+			("postgresdb")
+			("pyramid")
+			("reactui2")
+			("replicator")
+			("reservations")
+			("mysqldb")
+			("taskcoproduct4")
+			("fptscli")
+			("sqlitediff")
+			("emacs")
+			("lukhencom")
+			("playground")
+			))
+  ;; The following lines are always needed.  Choose your own keys.
+  (global-set-key "\C-cl" 'org-store-link)
+  (global-set-key "\C-ca" 'org-agenda)
+  (global-set-key "\C-cc" 'org-capture)
+  (global-set-key "\C-cb" 'org-iswitchb)
+
+  (global-set-key (kbd "C-c M") 'move-to-org)
+  (global-set-key (kbd "C-c S") 'move-to-someday)
+  (global-set-key (kbd "C-c R") 'move-to-archives)
+  (global-set-key (kbd "C-c D") 'delete-file-and-buffer)
+
+  ;; turn off tag inheritance
+  (setq org-use-tag-inheritance nil)
+
+  ;; org capture, isolated todos, someday
+  (setq org-default-notes-file (concat org-direcotry "notes.org"))
+  (setq org-capture-templates
+	'(("t" "A new todo item" entry (file org-default-notes-file) "* TODO %?\n\n** Area \n" :create-id t :created t)
+	  ("s" "A new someday item" entry (file org-default-notes-file) "* %?           :someday: \n")))
+    #+END_SRC
+* theme
+#+BEGIN_SRC emacs-lisp
+    (use-package material-theme
+      :straight t
+      :ensure t
+      :init
+      (load-theme 'material t)
+  )
+#+END_SRC
+
+* rainbow-delimiters
+  #+BEGIN_SRC emacs-lisp
+    (use-package rainbow-delimiters
+      :straight t
+      :ensure t
+      :hook
+      (prog-mode-hook . rainbow-delimiters-mode)
+      )
+#+END_SRC
+
+* org-roam
+ #+BEGIN_SRC emacs-lisp
+   (use-package org-roam
+     :straight t
+     :ensure t
+     :custom
+     (org-roam-directory "~/Dropbox/roam")
+     (org-roam-capture-templates
+      '(("z" "zettel" plain
+	 "%?"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: @zettel\n#+hugo_tags: private")
+	 :unnarrowed t)
+	("p" "project" plain "%?\n* Areas\n\n* Goals\n\n* Description\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: :project:")
+	 :unnarrowed t
+	 :created t)
+	))
+     (org-roam-dailies-capture-templates
+      '(("d" "default" entry "* %?  :clarify:\n# project:\n# itproject: "
+	 :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n#+filetags: @notes\n#+hugo_publishdate: %<%Y-%m-%d>\n#+hugo_tags: private\nSUMMARY HERE\n#+hugo: more")
+	)))
+
+     :bind (("C-c n l" . org-roam-buffer-toggle)
+	    ("C-c n f" . org-roam-node-find)
+	    ("C-c n i" . org-roam-node-insert)
+	    ("C-c n d" . org-roam-dailies-capture-today))
+     :config
+     (org-roam-setup)
+     (setq org-roam-dailies-directory "~/Dropbox/roam")
+     (setq org-roam-node-display-template
+	   (concat "${title:*} "
+		   (propertize "${tags:10}" 'face 'org-tag))))
+
+#+END_SRC
+
+* translate to/from Polish
+ #+BEGIN_SRC emacs-lisp
+   (autoload 'ispell-get-word "ispell")
+
+   (defun lookup-word (word)
+     (interactive (list (save-excursion (car (ispell-get-word nil)))))
+     (browse-url (format "https://pl.bab.la/slownik/angielski-polski/%s" word)))
+
+  ;; (global-set-key (kbd "M-#") 'lookup-word) 
+#+END_SRC
+  
+
+* org to hugo
+#+BEGIN_SRC emacs-lisp
+  (use-package ox-hugo
+    :straight t
+    :ensure t   ;Auto-install the package from Melpa
+    :after ox
+    :config
+
+    ;; define a function that removes some tags from exporting
+    (defun org-hugo--tag-processing-fn-remove-tags-maybe (tags-list info)
+      "Remove user-specified tags/categories.
+     See `org-hugo-tag-processing-functions' for more info."
+      ;; Use tag/category string (including @ prefix) exactly as used in Org file.
+      (let ((tags-categories-to-be-removed '("journal" ))) ;"my_tag" "@my_cat"
+	(cl-remove-if (lambda (tag_or_cat)
+			(member tag_or_cat tags-categories-to-be-removed))
+		      tags-list)))
+    (add-to-list 'org-hugo-tag-processing-functions
+		 #'org-hugo--tag-processing-fn-remove-tags-maybe)
+
+    ;; headings/file based posts with these tags won't be exported
+    (setq org-export-exclude-tags '("clarify" "private" "publishable"))
+    )
+
+  ;; set the keybinding for exporting all files to hugo  
+  (define-key dired-mode-map (kbd "C-+") 
+    (lambda() 
+      (interactive)
+      (diredp-do-apply/eval-marked 'org-hugo-export-wim-to-md '(4))))
+
+	 #+END_SRC
