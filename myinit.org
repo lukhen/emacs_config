@@ -541,3 +541,33 @@ This setting ensures environment variables inside emacs look the same as in the 
       (diredp-do-apply/eval-marked 'org-hugo-export-wim-to-md '(4))))
 
 	 #+END_SRC
+
+* haskell
+#+BEGIN_SRC emacs-lisp
+    (use-package lsp-mode
+	:straight t
+	:ensure t
+	:config
+	(add-hook 'haskell-mode-hook #'lsp)
+	(add-hook 'haskell-literate-mode-hook #'lsp)
+
+    )
+    (use-package lsp-haskell
+	:straight t
+	:ensure t
+
+    )
+
+
+    (use-package lsp-ui
+	:straight t
+	:ensure t
+    )
+
+  (use-package haskell-mode
+	:straight t
+	:ensure t
+    )
+
+  #+END_SRC
+
