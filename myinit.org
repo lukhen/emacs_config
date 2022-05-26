@@ -481,7 +481,7 @@ This setting ensures environment variables inside emacs look the same as in the 
 	 :created t)
 	))
      (org-roam-dailies-capture-templates
-      '(("d" "default" entry "* %?  :clarify:\n# project:\n# itproject: "
+      '(("d" "default" entry "* %?  :clarify:\n:PROPERTIES:\n:PROJECT: \n:ITPROJECT: \n:END:"
 	 :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n#+filetags: @notes\n#+hugo_publishdate: %<%Y-%m-%d>\n#+hugo_tags: private\nSUMMARY HERE\n#+hugo: more")
 	)))
 
