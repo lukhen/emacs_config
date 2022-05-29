@@ -475,8 +475,20 @@ This setting ensures environment variables inside emacs look the same as in the 
 	 "%?"
 	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: @zettel\n#+hugo_tags: private")
 	 :unnarrowed t)
-	("p" "project" plain "%?\n* Areas\n\n* Goals\n\n* Description\n\n* Tasks\n\n** TODO Add initial tasks\n\n* Dates\n\n"
-	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: :project:")
+	("p" "project" plain "%?\n* Areas\n\n* Goals\n\n* Description\n\n* Actions\n\n** Add initial tasks\n\n* Dates\n\n"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: project\n#+hugo_tags: private")
+	 :unnarrowed t
+	 :created t)
+	("a" "action" plain "%?"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: action\n#+hugo_tags: private")\ncontext: \nitproject: 
+	 :unnarrowed t
+	 :created t)
+	("t" "treasure" plain "%?"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: treasure\n#+hugo_tags: private")
+	 :unnarrowed t
+	 :created t)
+	("s" "someday" plain "%?"
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: someday\n#+hugo_tags: private")
 	 :unnarrowed t
 	 :created t)
 	))
