@@ -383,8 +383,8 @@ This setting ensures environment variables inside emacs look the same as in the 
 
   (add-hook 'org-capture-mode-hook #'my/org-capture-maybe-create-id-and-add-date)
 
-  (setq org-agenda-files '("/home/lukh/Dropbox/roam/gtd"))
-  (setq org-direcotry "/home/lukh/Dropbox/roam/gtd")
+  (setq org-agenda-files '("/home/lukh/Dropbox/roam"))
+  (setq org-direcotry "/home/lukh/Dropbox/roam")
 
   ;; set tags: @ - context tags, # - area tags
   (setq org-tag-alist '(
