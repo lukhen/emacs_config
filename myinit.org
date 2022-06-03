@@ -480,7 +480,7 @@ This setting ensures environment variables inside emacs look the same as in the 
 	 :unnarrowed t
 	 :created t)
 	("a" "action" plain "%?"
-	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: action\n#+hugo_tags: private")\ncontext: \nitproject: 
+	 :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+filetags: action\n#+hugo_tags: private\ncontext: \nitproject:\narea: ") 
 	 :unnarrowed t
 	 :created t)
 	("t" "treasure" plain "%?"
