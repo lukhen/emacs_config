@@ -348,10 +348,11 @@ This setting ensures environment variables inside emacs look the same as in the 
     :straight t
     :ensure t
     :after (typescript-mode company flycheck)
-    :hook
-    (typescript-mode . tide-setup)
-    (typescript-mode . tide-hl-identifier-mode)
-    (before-save . tide-format-before-save)
+    ;; temporarily disable tide, in favor of lsp-mode (see lsp section)
+    ;;:hook
+    ;;(typescript-mode . tide-setup)
+    ;;(typescript-mode . tide-hl-identifier-mode)
+    ;;(before-save . tide-format-before-save)
     :config
     (setq tide-tsserver-executable "node_modules/typescript/bin/tsserver")
     )
@@ -554,22 +555,23 @@ This setting ensures environment variables inside emacs look the same as in the 
 
 	 #+END_SRC
 
-* haskell
+* lsp (haskell, typescript)
 #+BEGIN_SRC emacs-lisp
     (use-package lsp-mode
 	:straight t
 	:ensure t
 	:config
+	;; set deno server, it's temporary, just to test if lsp-mode is suitable for me
+	(setq lsp-clients-deno-server "/home/lukh/Desktop/lukhbook/services/deno_backend/deno")
 	(add-hook 'haskell-mode-hook #'lsp)
 	(add-hook 'haskell-literate-mode-hook #'lsp)
-
+	(add-hook 'typescript-mode-hook  #'lsp)
     )
     (use-package lsp-haskell
 	:straight t
 	:ensure t
 
     )
-
 
     (use-package lsp-ui
 	:straight t
