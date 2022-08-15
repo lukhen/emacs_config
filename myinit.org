@@ -585,3 +585,18 @@ This setting ensures environment variables inside emacs look the same as in the 
 
   #+END_SRC
 
+
+* spaced repetition: org-fc
+#+BEGIN_SRC emacs-lisp
+    (use-package hydra
+      :straight t)
+  (use-package org-fc
+    :straight t
+    (org-fc
+     :type git :repo "https://git.sr.ht/~l3kn/org-fc"
+     :files (:defaults "awk" "demo.org"))
+    :custom
+    (org-fc-directories '("~/org/"))
+    :config
+    (require 'org-fc-hydra))
+  #+END_SRC
