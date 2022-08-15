@@ -544,7 +544,7 @@ This setting ensures environment variables inside emacs look the same as in the 
 		 #'org-hugo--tag-processing-fn-remove-tags-maybe)
 
     ;; headings/file based posts with these tags won't be exported
-    (setq org-export-exclude-tags '("clarify" "private" "publishable"))
+    (setq org-export-exclude-tags '("clarify" "private" "publishable" "fc"))
     )
 
   ;; set the keybinding for exporting all files to hugo  
